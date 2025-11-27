@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
-// 루틴 샘플
 const routines = [
   { id: 1, title: "CS 공부", completed: true, icon: "💻" },
   { id: 2, title: "코딩테스트", completed: true, icon: "⌨️" },
@@ -38,6 +37,11 @@ export default function DevRoutinePage() {
   const [newTitle, setNewTitle] = useState("")
   const [newColor, setNewColor] = useState("#7886C7")
 
+  // 캘린더 일정 & 업무 선택부분
+  const [modalStep, setModalStep] = useState<"type" | "basic" | "todo">("type")
+  const [eventType, setEventType] = useState<"basic" | "todo" | null>(null)
+
+
   // 날짜 포맷 키
   function dateKey(date: Date) {
     return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
@@ -54,6 +58,7 @@ export default function DevRoutinePage() {
   // 모달 열기
   const openModal = (date: Date) => {
     setSelectedDate(date)
+    setModalStep("type") 
     setIsModalOpen(true)
   }
 
@@ -139,7 +144,7 @@ export default function DevRoutinePage() {
               <h1 className="mb-2 text-4xl font-bold text-foreground">
                 DevRoutine
               </h1>
-              <p className="text-muted-foreground">취준생을 위한 루틴 트래커</p>
+              <p className="text-muted-foreground">개발자 취준생을 위한 루틴 트래커</p>
             </div>
             <div className="glass-card flex items-center gap-3 rounded-2xl px-4 py-2">
               <Flame className="h-5 w-5 text-destructive" />
@@ -322,15 +327,55 @@ export default function DevRoutinePage() {
       </div>
 
       {/* ------------------ 일정 추가 모달 ------------------ */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      
+      {/* ------------------ Step 1: 일정 유형 선택 ------------------ */}
+      {modalStep === "type" && (
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {selectedDate?.getDate()}일 일정 추가
+              어떤 일정을 추가할까요?
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 mt-4">
+            <button
+              onClick={() => {
+                setEventType("basic")
+                setModalStep("basic")
+              }}
+              className="w-full rounded-xl border border-border p-4 text-left hover:bg-accent transition"
+            >
+              📅 기본 일정  
+              <p className="text-xs text-muted-foreground">알바 · 약속 · 시험 등 일반 일정</p>
+            </button>
+
+            <button
+              onClick={() => {
+                setEventType("todo")
+                setModalStep("todo")
+              }}
+              className="w-full rounded-xl border border-border p-4 text-left hover:bg-accent transition"
+            >
+              📝 투두리스트
+              <p className="text-xs text-muted-foreground">
+                CS · 코테 · 프로젝트 · 스터디
+              </p>
+            </button>
+          </div>
+        </DialogContent>
+      )}
+
+      {/* ------------------ Step 2-A: 기본 일정 입력 ------------------ */}
+      {modalStep === "basic" && (
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {selectedDate?.getDate()}일 기본 일정 추가
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
             <input
               placeholder="일정 제목"
               value={newTitle}
@@ -338,8 +383,9 @@ export default function DevRoutinePage() {
               className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
             />
 
+            {/* 색상 선택 */}
             <div className="flex gap-2">
-              {["#7886C7", "#F4B6B6", "#4EA8DE", "#FFD43B"].map((color) => (
+              {["#9EC6F3", "#A9B5DF", "#7886C7", "#2D3368"].map((color) => (
                 <button
                   key={color}
                   type="button"
@@ -358,7 +404,52 @@ export default function DevRoutinePage() {
             <Button onClick={saveEvent}>저장</Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      )}
+          {/* ------------------ Step 2-B: 업무(Todo) 입력 ------------------ */}
+          {modalStep === "todo" && (
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold">
+                  {selectedDate?.getDate()}일 업무 추가
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4 mt-4">
+                <input
+                  placeholder="업무 제목"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                />
+
+                {/* 카테고리 */}
+                <select className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm">
+                  <option>CS</option>
+                  <option>코테</option>
+                  <option>프로젝트</option>
+                  <option>자소서</option>
+                </select>
+
+                {/* 우선순위 */}
+                <div className="flex gap-2">
+                  {["높음", "보통", "낮음"].map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      className="rounded-xl border border-border px-3 py-1 text-sm hover:bg-accent"
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button onClick={saveEvent}>저장</Button>
+              </DialogFooter>
+            </DialogContent>
+          )}
+        </Dialog>
     </div>
   )
 }
